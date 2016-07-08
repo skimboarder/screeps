@@ -56,96 +56,93 @@ module.exports.loop = function () {
 }
 
 function spawnCreeps() {
-    var HARVESTER = "harvester";
-var EXTENSION_BUILDER = "extensionBuilder";
-var ROAD_BUILDER = "roadBuilder";
-var TRANSFER_SPAWN = "transferSpawn";
-var UPGRADER = "upgrader";
-var WALL_BUILDER = "wallBuilder";
-var FAR_HARVESTER = "farHarvester"
+   var HARVESTER = "harvester";
+   var EXTENSION_BUILDER = "extensionBuilder";
+   var ROAD_BUILDER = "roadBuilder";
+   var TRANSFER_SPAWN = "transferSpawn";
+   var UPGRADER = "upgrader";
+   var WALL_BUILDER = "wallBuilder";
+   var FAR_HARVESTER = "farHarvester"
 
-        if(getPopOfRole(HARVESTER) < 3) {
-            
-            var newCreep = Game.spawns.Spawn1.createCreep(
-                                                [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE],
-                                                null,
-                                                {role: 'harvester'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New harvester made. NAME: " + newCreep);
-            }
-        }
-        
-        if(getPopOfRole(UPGRADER) < 1) {
-            var newCreep = Game.spawns.Spawn1.createCreep(
-                                                [WORK,WORK,CARRY,MOVE,MOVE],
-                                                null,
-                                                {role: 'upgrader'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New upgrader made. NAME: " + newCreep);
-            }
-        }
-        
-        if(getPopOfRole(EXTENSION_BUILDER) < 1) {
-            var newCreep = Game.spawns.Spawn1.createCreep(
-                                                [WORK,WORK,CARRY,MOVE,MOVE],
-                                                null,
-                                                {role: 'extensionBuilder'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New extension builder made. NAME: " + newCreep);
-            }
-        }
-        
-        if(getPopOfRole(ROAD_BUILDER) < 1) {
-            var newCreep = Game.spawns.Spawn1.createCreep(
-                                                [WORK,CARRY,CARRY,MOVE,MOVE],
-                                                null,
-                                                {role: 'roadBuilder'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New road builder made. NAME: " + newCreep);
-            }
-        }
-        
-        if(getPopOfRole(WALL_BUILDER) < 1) {
-            var newCreep = Game.spawns.Spawn1.createCreep(
-                                                [WORK,CARRY,CARRY,MOVE,MOVE],
-                                                null,
-                                                {role: 'wallBuilder'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New wall builder made. NAME: " + newCreep);
-            }
-        }
-        
-        if(getPopOfRole(TRANSFER_SPAWN) < 2) {
-
-            var newCreep = Game.spawns.Spawn1.createCreep(
-                                                [WORK,WORK,CARRY,CARRY,MOVE],
-                                                null,
-                                                {role: 'transferSpawn'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New wall transferSpawner made. NAME: " + newCreep);
-            }
-                                                
-        }
-        
-        if(getPopOfRole(FAR_HARVESTER) < 2) {
-            
-            var newCreep = Game.spawns.Spawn1.createCreep(
-                                                [WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
-                                                {role: 'farHarvester'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New wall farHarvester made. NAME: " + newCreep);
-            }
-        }
-    
+  if(getPopOfRole(HARVESTER) < 3) {
+   
+      var newCreep = Game.spawns.Spawn1.createCreep(
+                                          [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE],
+                                          null,
+                                          {role: 'harvester'}
+                                          );
+      if(_.isString(newCreep)) {
+          console.log("New harvester made. NAME: " + newCreep);
+      }
+  }
+  
+  if(getPopOfRole(UPGRADER) < 1) {
+      var newCreep = Game.spawns.Spawn1.createCreep(
+                                          [WORK,WORK,CARRY,MOVE,MOVE],
+                                          null,
+                                          {role: 'upgrader'}
+                                          );
+      if(_.isString(newCreep)) {
+          console.log("New upgrader made. NAME: " + newCreep);
+      }
+  }
+  
+  if(getPopOfRole(EXTENSION_BUILDER) < 1) {
+      var newCreep = Game.spawns.Spawn1.createCreep(
+                                          [WORK,WORK,CARRY,MOVE,MOVE],
+                                          null,
+                                          {role: 'extensionBuilder'}
+                                          );
+      if(_.isString(newCreep)) {
+          console.log("New extension builder made. NAME: " + newCreep);
+      }
+  }
+  
+  if(getPopOfRole(ROAD_BUILDER) < 1) {
+      var newCreep = Game.spawns.Spawn1.createCreep(
+                                          [WORK,CARRY,CARRY,MOVE,MOVE],
+                                          null,
+                                          {role: 'roadBuilder'}
+                                          );
+      if(_.isString(newCreep)) {
+          console.log("New road builder made. NAME: " + newCreep);
+      }
+  }
+  
+  if(getPopOfRole(WALL_BUILDER) < 1) {
+      var newCreep = Game.spawns.Spawn1.createCreep(
+                                          [WORK,CARRY,CARRY,MOVE,MOVE],
+                                          null,
+                                          {role: 'wallBuilder'}
+                                          );
+      if(_.isString(newCreep)) {
+          console.log("New wall builder made. NAME: " + newCreep);
+      }
+  }
+  
+  if(getPopOfRole(TRANSFER_SPAWN) < 2) {
+         var newCreep = Game.spawns.Spawn1.createCreep(
+                                          [WORK,WORK,CARRY,CARRY,MOVE],
+                                          null,
+                                          {role: 'transferSpawn'}
+                                          );
+      if(_.isString(newCreep)) {
+          console.log("New wall transferSpawner made. NAME: " + newCreep);
+      }
+                                          
+  }
+  
+  if(getPopOfRole(FAR_HARVESTER) < 2) {
+      
+      var newCreep = Game.spawns.Spawn1.createCreep(
+                                          [WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
+                                          {role: 'farHarvester'}
+                                          );
+      if(_.isString(newCreep)) {
+          console.log("New wall farHarvester made. NAME: " + newCreep);
+      }
+  }
 }
-
 
 function clearCreepMemory() {
     
