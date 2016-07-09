@@ -1,3 +1,5 @@
+var creepUtil = require('util.creepUtils');
+
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
 var roleExtBuilder = require('role.extensionBuilder');
@@ -5,12 +7,12 @@ var roleRoadBuilder = require('role.roadBuilder');
 var roleWallBuilder = require('role.wallBuilder');
 var roleTransferSpawn = require('role.transferSpawn');
 var roleFarHarvester = require('role.farHarvester');
+var roleTowerBuilder = require('role.towerBuilder');
+
+var structureTower = require('structure.tower');
 
 /* TODO:
     * Code refactor
-    * wallBuilders build Ramparts, repair walls and ramparts
-    * roadBuilders repair roads
-    * meleeAttackers
     * ranged Attackers
     * healer?
     
@@ -20,128 +22,35 @@ var roleFarHarvester = require('role.farHarvester');
 module.exports.loop = function () {
 
     clearCreepMemory();
-    
-    var pop = 0;
+
+    var creep;
     
     for(var name in Game.creeps) {
-        pop++;
+        creep = Game.creeps[name];
         
-        var creep = Game.creeps[name];
-        
-        if(creep.memory.role == 'harvester') {
+        if(creep.memory.role == creepUtil.HARVESTER) {
 
             roleHarvester.run(creep);
-        } else if(creep.memory.role == 'upgrader') {
-
+        } else if(creep.memory.role == creepUtil.UPGRADER) {
             roleUpgrader.run(creep);
-        } else if(creep.memory.role == 'extensionBuilder') {
-
+        } else if(creep.memory.role == creepUtil.EXTENSION_BUILDER) {
             roleExtBuilder.run(creep);
-        } else if(creep.memory.role == 'roadBuilder') {
-
+        } else if(creep.memory.role == creepUtil.ROAD_BUILDER) {
             roleRoadBuilder.run(creep);
-        } else if(creep.memory.role == 'wallBuilder') {
-
+        } else if(creep.memory.role == creepUtil.WALL_BUILDER) {
             roleWallBuilder.run(creep);
-        } else if(creep.memory.role == 'transferSpawn') {
-
+        } else if(creep.memory.role == creepUtil.TRANSFER_SPAWN) {
             roleTransferSpawn.run(creep);
-        } else if(creep.memory.role == 'farHarvester') {
+        } else if(creep.memory.role == creepUtil.FAR_HARVESTER) {
             roleFarHarvester.run(creep);
+        } else if(creep.memory.role == creepUtil.TOWER_BUILDER) {
+            roleTowerBuilder.run(creep);
         }
     }
+    
+    runTowerRole(creep);
+    creepUtil.spawnCreeps();
 
-    spawnCreeps();
-
-}
-
-function spawnCreeps() {
-   var HARVESTER = "harvester";
-   var EXTENSION_BUILDER = "extensionBuilder";
-   var ROAD_BUILDER = "roadBuilder";
-   var TRANSFER_SPAWN = "transferSpawn";
-   var UPGRADER = "upgrader";
-   var WALL_BUILDER = "wallBuilder";
-   var FAR_HARVESTER = "farHarvester"
-
-  if(getPopOfRole(HARVESTER) < 3) {
-   
-      var newCreep = Game.spawns.Spawn1.createCreep(
-                                          [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE],
-                                          null,
-                                          {role: 'harvester'}
-                                          );
-      if(_.isString(newCreep)) {
-          console.log("New harvester made. NAME: " + newCreep);
-      }
-  }
-  
-  if(getPopOfRole(UPGRADER) < 1) {
-      var newCreep = Game.spawns.Spawn1.createCreep(
-                                          [WORK,WORK,CARRY,MOVE,MOVE],
-                                          null,
-                                          {role: 'upgrader'}
-                                          );
-      if(_.isString(newCreep)) {
-          console.log("New upgrader made. NAME: " + newCreep);
-      }
-  }
-  
-  if(getPopOfRole(EXTENSION_BUILDER) < 1) {
-      var newCreep = Game.spawns.Spawn1.createCreep(
-                                          [WORK,WORK,CARRY,MOVE,MOVE],
-                                          null,
-                                          {role: 'extensionBuilder'}
-                                          );
-      if(_.isString(newCreep)) {
-          console.log("New extension builder made. NAME: " + newCreep);
-      }
-  }
-  
-  if(getPopOfRole(ROAD_BUILDER) < 1) {
-      var newCreep = Game.spawns.Spawn1.createCreep(
-                                          [WORK,CARRY,CARRY,MOVE,MOVE],
-                                          null,
-                                          {role: 'roadBuilder'}
-                                          );
-      if(_.isString(newCreep)) {
-          console.log("New road builder made. NAME: " + newCreep);
-      }
-  }
-  
-  if(getPopOfRole(WALL_BUILDER) < 1) {
-      var newCreep = Game.spawns.Spawn1.createCreep(
-                                          [WORK,CARRY,CARRY,MOVE,MOVE],
-                                          null,
-                                          {role: 'wallBuilder'}
-                                          );
-      if(_.isString(newCreep)) {
-          console.log("New wall builder made. NAME: " + newCreep);
-      }
-  }
-  
-  if(getPopOfRole(TRANSFER_SPAWN) < 2) {
-         var newCreep = Game.spawns.Spawn1.createCreep(
-                                          [WORK,WORK,CARRY,CARRY,MOVE],
-                                          null,
-                                          {role: 'transferSpawn'}
-                                          );
-      if(_.isString(newCreep)) {
-          console.log("New wall transferSpawner made. NAME: " + newCreep);
-      }
-                                          
-  }
-  
-  if(getPopOfRole(FAR_HARVESTER) < 2) {
-      
-      var newCreep = Game.spawns.Spawn1.createCreep(
-                                          [WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE],
-                                          {role: 'farHarvester'}
-                                          );
-      if(_.isString(newCreep)) {
-          console.log("New wall farHarvester made. NAME: " + newCreep);
-      }
-  }
 }
 
 function clearCreepMemory() {
@@ -154,13 +63,15 @@ function clearCreepMemory() {
     }
 }
 
-function getPopOfRole(job) {
-
-    var pop = 0;
-    for (var c in Game.creeps) {
-        if(Game.creeps[c].memory.role == job) {
-            pop++;
+function runTowerRole(creep) {
+    
+    var tower = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+            return structure.structureType == STRUCTURE_TOWER && structure.energy > structure.energyCapacity / 2
         }
+    });
+    for (var t in tower) {
+        structureTower.run(tower[t]);
     }
-    return pop;
+    
 }
