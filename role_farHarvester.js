@@ -1,31 +1,32 @@
+var structUtil = require('util.structureUtils');
+var creepUtil = require('util.creepUtils');
+
 var roleFarHarvester = {
 
     /** @param {Creep} creep **/
     run: function(creep) {
         if(creep.carry.energy < creep.carryCapacity) {
-            var sources = creep.room.find(FIND_SOURCES);
-            if(creep.harvest(sources[0]) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(sources[0]);
-                
+            if(creep.room.name != "E49S42" && !creep.memory.harvesting) {
+                var exitDir = creep.room.find(FIND_EXIT_RIGHT);
+                var exit = creep.pos.findClosestByRange(exitDir);
+                creep.moveTo(exit);
+
+            } else {
+                creep.memory.harvesting = true;
+                creepUtil.harvestEnergy(creep);
+            }
+
+        } else if(creep.carry.energy == creep.carryCapacity) {
+            if(creep.room.name == "E49S42" && creep.memory.harvesting) { 
+                var exitDir = creep.room.find(FIND_EXIT_LEFT);
+                var exit = creep.pos.findClosestByRange(exitDir);
+                creep.moveTo(exit);
+            } else {
+                creep.memory.harvesting = false;
+                structUtil.fillContainer(creep);
             }
         }
-        else {
-            var targets = creep.room.find(FIND_STRUCTURES, {
-                    filter: (structure) => {
-                        if((structure.structureType == STRUCTURE_CONTAINER) && (structure.store[RESOURCE_ENERGY] < structure.storeCapacity)) {
-                            return structure;
-                        }
-                            
-                    }
-            });
-            if(targets.length > 0) {
-                
-                if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(targets[0], {reusePath: 15});
-                }
-            }
-            
-        }
+
     }
 };
 
