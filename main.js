@@ -1,4 +1,5 @@
 var creepUtil = require('util.creepUtils');
+var structUtil = require('util.structureUtils');
 
 var roleHarvester = require('role.harvester');
 var roleUpgrader = require('role.upgrader');
@@ -29,7 +30,6 @@ module.exports.loop = function () {
         creep = Game.creeps[name];
         
         if(creep.memory.role == creepUtil.HARVESTER) {
-
             roleHarvester.run(creep);
         } else if(creep.memory.role == creepUtil.UPGRADER) {
             roleUpgrader.run(creep);
@@ -48,7 +48,7 @@ module.exports.loop = function () {
         }
     }
     
-    runTowerRole(creep);
+    structUtil.runTowerRole(creep);
     creepUtil.spawnCreeps();
 
 }
@@ -61,17 +61,4 @@ function clearCreepMemory() {
             console.log("Creep deleted from memory. NAME: " + c);
         }
     }
-}
-
-function runTowerRole(creep) {
-    
-    var tower = creep.room.find(FIND_STRUCTURES, {
-        filter: (structure) => {
-            return structure.structureType == STRUCTURE_TOWER && structure.energy > structure.energyCapacity / 2
-        }
-    });
-    for (var t in tower) {
-        structureTower.run(tower[t]);
-    }
-    
 }
