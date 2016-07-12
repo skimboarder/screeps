@@ -10,13 +10,13 @@ var roleTransferSpawn = {
 	    }else if(!creep.memory.filling && creep.carry.energy == creep.carryCapacity) {
 	        creep.memory.filling = true;
 	    }else if(creep.memory.filling) {
-	        var targets = creep.room.find(FIND_STRUCTURES, {
+	        var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return (structure.structureType == STRUCTURE_EXTENSION || structure.structureType == STRUCTURE_SPAWN) &&
                             structure.energy < structure.energyCapacity;
                     }
             });
-            if(targets.length > 0) {
+            if(targets) {
                 structUtils.fillSpawns(creep, targets);
             } else {
                 structUtils.upgradeCtrl(creep);
