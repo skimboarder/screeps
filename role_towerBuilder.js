@@ -12,20 +12,20 @@ var roleTowerBuilder = {
 	    } else if(!creep.memory.building && creep.carry.energy == creep.carryCapacity) {
 	        creep.memory.building = true;
 	    } else if(creep.memory.building) {
-	        var targets = creep.room.find(FIND_CONSTRUCTION_SITES, {
+	        var targets = creep.pos.findClosestByRange(FIND_CONSTRUCTION_SITES, {
 	            filter: (structure) => {
 	                return structure.structureType == STRUCTURE_TOWER
 	            }
 	        });
-            if(targets.length) {
+            if(targets) {
                 creepUtils.buildStruct(creep, targets);
             } else {
-                var tower = creep.room.find(FIND_STRUCTURES, {
+                var tower = creep.pos.findClosestByRange(FIND_STRUCTURES, {
                     filter: (structure) => {
                         return structure.structureType == STRUCTURE_TOWER
                     }
                 });
-                if(tower.length) {
+                if(tower) {
                     structUtils.fillTower(creep, tower);
                 }
             }
