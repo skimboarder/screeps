@@ -1,11 +1,4 @@
-var CREEP_EXTENSIONBUILDER = [WORK,WORK,WORK,CARRY,MOVE,MOVE];
-var CREEP_FARHARVESTER = [WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE];
-var CREEP_HARVESTER = [WORK,WORK,WORK,WORK,CARRY,CARRY,MOVE];
-var CREEP_ROADBUILDER = [WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK];
-var CREEP_TOWERBUILDER = [WORK,WORK,WORK,CARRY,MOVE,MOVE];
-var CREEP_TRANSFERSPAWN = [WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE, MOVE];
-var CREEP_UPGRADER = [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE];
-var CREEP_WALLBUILDER = [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,ATTACK,ATTACK,ATTACK,TOUGH,TOUGH];
+var REBUILD_INTERVAL = 300;
 
 var HARVESTER = "harvester";
 var EXTENSION_BUILDER = "extensionBuilder";
@@ -16,6 +9,25 @@ var WALL_BUILDER = "wallBuilder";
 var FAR_HARVESTER = "farHarvester"
 var TOWER_BUILDER = "towerBuilder"
 
+var CREEP_BODIES = new Array();
+CREEP_BODIES[HARVESTER] = [WORK,WORK,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE];
+CREEP_BODIES[EXTENSION_BUILDER] =  [WORK,WORK,WORK,CARRY,MOVE,MOVE];
+CREEP_BODIES[ROAD_BUILDER] = [WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH];
+CREEP_BODIES[TRANSFER_SPAWN] = [WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE];
+CREEP_BODIES[UPGRADER] = [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE];
+CREEP_BODIES[WALL_BUILDER] = [WORK,WORK,WORK,CARRY,CARRY,MOVE,MOVE,ATTACK,ATTACK,ATTACK,ATTACK,ATTACK,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH,TOUGH];
+CREEP_BODIES[FAR_HARVESTER] = [WORK,WORK,WORK,CARRY,CARRY,CARRY,MOVE,MOVE,MOVE,MOVE];
+CREEP_BODIES[TOWER_BUILDER] = [WORK,WORK,WORK,CARRY,MOVE,MOVE];
+
+var CREEP_MAXPOP = new Array();
+CREEP_MAXPOP[HARVESTER] = 1;
+CREEP_MAXPOP[EXTENSION_BUILDER] = 1;
+CREEP_MAXPOP[ROAD_BUILDER] = 2;
+CREEP_MAXPOP[TRANSFER_SPAWN] = 2;
+CREEP_MAXPOP[UPGRADER] = 1;
+CREEP_MAXPOP[WALL_BUILDER] = 1;
+CREEP_MAXPOP[FAR_HARVESTER] = 4;
+CREEP_MAXPOP[TOWER_BUILDER] = 1;
 
 var getPopOfRole = function(job) {
 
@@ -29,112 +41,71 @@ var getPopOfRole = function(job) {
 };
 
 var harvestEnergy = function(creep) {
-    
-    var sources = creep.room.find(FIND_SOURCES);
-    if(creep.harvest(sources[1]) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(sources[1]);
+    var droppedEnergy = creep.pos.findClosestByRange(FIND_DROPPED_ENERGY);
+    if(droppedEnergy) {
+        if(creep.pickup(droppedEnergy) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(droppedEnergy);
+        }
+    } else {
+        var sources = creep.pos.findClosestByRange(FIND_SOURCES);
+        if(creep.harvest(sources) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(sources);
+        }
     }
     
 }
 
 var getWorkerEnergy = function(creep) {
-    var sources = creep.room.find(FIND_STRUCTURES, {
+    var sources = creep.pos.findClosestByRange(FIND_STRUCTURES, {
         filter: (structure) => {
-        if((structure.structureType == STRUCTURE_CONTAINER) && (structure.store[RESOURCE_ENERGY] > 0)) {
+        if((structure.structureType == STRUCTURE_STORAGE) || (structure.structureType == STRUCTURE_CONTAINER) && (structure.store[RESOURCE_ENERGY] > 0)) {
             return structure;
         }
                         
         }
     });
-    if(sources.length){
-        if(sources[0].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE || sources[0].transfer(creep, RESOURCE_ENERGY) == ERR_NOT_ENOUGH_RESOURCES) {
-            creep.moveTo(sources[0]);
+    if(sources){
+        if(sources.transfer(creep, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE || sources.transfer(creep, RESOURCE_ENERGY) == ERR_NOT_ENOUGH_RESOURCES) {
+            creep.moveTo(sources);
         }
     }
 };
 
+var shouldRebuild = function(creep) {
+    if(creep.memory.rebuildTimer < REBUILD_INTERVAL && creep.memory.shouldRebuild) {
+        creep.memory.rebuildTimer++;
+        return true;
+    } else if(creep.memory.rebuildTimer < REBUILD_INTERVAL && !creep.memory.shouldRebuild) {
+        creep.memory.rebuildTimer++;
+        return false;
+    } else {
+        creep.memory.rebuildTimer = 0;
+        creep.memory.shouldRebuild = !creep.memory.shouldRebuild;
+        return creep.memory.shouldRebuild;
+    }
+    
+}
+
 var spawnCreeps = function() {
 
-    var newCreep;
-    
-    if(Game.spawns.Spawn1.spawning == null) {
-        if(getPopOfRole(HARVESTER) < 3) {
-                
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_HARVESTER,
-                                                null,
-                                                {role: 'harvester'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New harvester made. NAME: " + newCreep);
-            }
-            
-        } else if(getPopOfRole(FAR_HARVESTER) < 4) {
-            
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_FARHARVESTER,
-                                                null,
-                                                {role: 'farHarvester'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New wall farHarvester made. NAME: " + newCreep);
-            
-            }
-            
-        } else if(getPopOfRole(TRANSFER_SPAWN) < 2) {
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_TRANSFERSPAWN,
-                                                null,
-                                                {role: 'transferSpawn'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New wall transferSpawner made. NAME: " + newCreep);
-            }
-            
-        } else if(getPopOfRole(TOWER_BUILDER) < 1) {
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_TOWERBUILDER,
-                                                null,
-                                                {role: 'towerBuilder'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New tower builder made. NAME: " + newCreep);
-            }
-        } else if(getPopOfRole(WALL_BUILDER) < 2) {
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_WALLBUILDER,
-                                                null,
-                                                {role: 'wallBuilder'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New wall builder made. NAME: " + newCreep);
-            }
-        } else if(getPopOfRole(UPGRADER) < 2) {
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_UPGRADER,
-                                                null,
-                                                {role: 'upgrader'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New upgrader made. NAME: " + newCreep);
-            }
-        } else if(getPopOfRole(EXTENSION_BUILDER) < 1) {
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_EXTENSIONBUILDER,
-                                                null,
-                                                {role: 'extensionBuilder'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New extension builder made. NAME: " + newCreep);
-            }
-        } else if(getPopOfRole(ROAD_BUILDER) < 1) {
-            newCreep = Game.spawns.Spawn1.createCreep(
-                                                CREEP_ROADBUILDER,
-                                                null,
-                                                {role: 'roadBuilder'}
-                                                );
-            if(_.isString(newCreep)) {
-                console.log("New road builder made. NAME: " + newCreep);
+    for(var spawn in Game.spawns) {
+        if(spawn.spawning == null) {
+            for(var role in CREEP_BODIES) {
+
+                if(getPopOfRole(role) < CREEP_MAXPOP[role]) {
+                        
+                    var newCreep = Game.spawns[spawn].createCreep(
+                                        CREEP_BODIES[role],
+                                        null,
+                                        {role: role,
+                                         home: spawn.room
+                                        }
+                                    );
+                    if(_.isString(newCreep)) {
+                        console.log("New " + role + " made. NAME: " + newCreep);
+                    }
+                    
+                }
             }
         }
     }
@@ -146,14 +117,9 @@ module.exports = {
     getWorkerEnergy,
     spawnCreeps,
     harvestEnergy,
-    CREEP_EXTENSIONBUILDER,
-    CREEP_FARHARVESTER,
-    CREEP_HARVESTER,
-    CREEP_ROADBUILDER,
-    CREEP_TOWERBUILDER,
-    CREEP_TRANSFERSPAWN,
-    CREEP_UPGRADER,
-    CREEP_WALLBUILDER,
+    shouldRebuild,
+    CREEP_BODIES,
+    CREEP_MAXPOP,
     HARVESTER,
     EXTENSION_BUILDER,
     ROAD_BUILDER,
