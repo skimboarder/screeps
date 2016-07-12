@@ -1,42 +1,57 @@
+var structureTower = require('structure.tower');
+
 var repairStruct = function(creep, struct) {
-    if(creep.repair(struct[0]) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(struct[0]);
+    if(creep.repair(struct) == ERR_NOT_IN_RANGE) {
+        creep.moveTo(struct);
     }
 };
 
 var buildStruct = function(creep, struct) {
-    if(creep.build(struct[0]) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(struct[0]);
+    if(creep.build(struct) == ERR_NOT_IN_RANGE) {
+        creep.moveTo(struct);
     }
-}
+};
+
+var runTowerRole = function(creep) {
+    
+    var tower = creep.room.find(FIND_STRUCTURES, {
+        filter: (structure) => {
+            return structure.structureType == STRUCTURE_TOWER && structure.energy > structure.energyCapacity / 2
+        }
+    });
+    for (var t in tower) {
+        structureTower.run(tower[t]);
+    }
+    
+};
 
 var fillContainer = function(creep) {
-    var targets = creep.room.find(FIND_STRUCTURES, {
+    var targets = creep.pos.findClosestByRange(FIND_STRUCTURES, {
         filter: (structure) => {
-            if((structure.structureType == STRUCTURE_CONTAINER) && (structure.store[RESOURCE_ENERGY] < structure.storeCapacity)) {
+            if((structure.structureType == STRUCTURE_STORAGE || structure.structureType == STRUCTURE_CONTAINER) && (structure.store[RESOURCE_ENERGY] < structure.storeCapacity)) {
                 return structure;
             }
                 
         }
     });
-    if(targets.length > 0) {
+    if(targets) {
         
-        if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-            creep.moveTo(targets[0], {reusePath: 15});
+        if(creep.transfer(targets, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+            creep.moveTo(targets, {reusePath: 15});
         }
     }
 };
 
 var fillTower = function(creep, tower) {
-    var response = creep.transfer(tower[0], RESOURCE_ENERGY);
+    var response = creep.transfer(tower, RESOURCE_ENERGY);
     if(response == ERR_NOT_IN_RANGE) {
-        creep.moveTo(tower[0]);
+        creep.moveTo(tower);
    }
 };
 
-var fillSpawns = function(creep, targets) {
-    if(creep.transfer(targets[0], RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-        creep.moveTo(targets[0]);
+var fillSpawns = function(creep, target) {
+    if(creep.transfer(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+        creep.moveTo(target);
     }
 };
 
@@ -49,6 +64,7 @@ var upgradeCtrl = function(creep) {
 module.exports = {
     repairStruct,
     buildStruct,
+    runTowerRole,
     fillContainer,
     fillTower,
     fillSpawns,
